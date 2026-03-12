@@ -1,5 +1,5 @@
-// Gestion de la soumission du formulaire de connexion
 $(document).ready(function () {
+    // Fonction pour charger une page dans le corps de la page actuelle
     function loadPage(page) {
 
         $.get(page, function (data) {
@@ -9,6 +9,7 @@ $(document).ready(function () {
         });
 
     }
+    // Gestion de la soumission du formulaire de connexion
     $('#loginForm').submit(function (event) {
         event.preventDefault();
         // Récupérer les données du formulaire
@@ -27,22 +28,36 @@ $(document).ready(function () {
             success: function (response) {
                 if (response.success) {
 
-                    
+                    // Afficher un message de succès et rediriger en fonction du rôle de l'utilisateur
                     if (response.role == "admin") {
-                        //loadPage("admin.html");
-                        $('#message').html('Connexion réussie pour l\'administrateur!').css('color', 'green');
-                    // Rediriger vers la page d'accueil ou tableau de bord
+                        $('#message')
+                            .removeClass()
+                            .addClass('alert alert-success mt-3 text-center')
+                            .html('Connexion réussie pour l\'administrateur!').css('color', 'green')
+                            .show();
+                        loadPage("../admin.html");
+                        // Rediriger vers la page d'accueil ou tableau de bord
                     }
                     else {
                         //loadPage("user.html");
-                        $('#message').html('Connexion réussie pour l\'utilisateur!').css('color', 'green');
+                        $('#message')
+                            .removeClass()
+                            .addClass('alert alert-success mt-3 text-center')
+                            .html('Connexion réussie pour l\'utilisateur!').css('color', 'green')
+                            .show();
                     }
                 }
+                // Afficher un message d'erreur si les informations de connexion sont incorrectes
                 else {
-                    $('#message').html('Email ou mot de passe incorrect.').css('color', 'red');
+                    $('#message')
+                        .removeClass()
+                        .addClass('alert alert-danger mt-3 text-center')
+                        .html('Email ou mot de passe incorrect.').css('color', 'red')
+                        .show();
                 }
 
             },
+            // Afficher une erreur en cas de problème avec la requête AJAX
             error: function (error) {
                 console.log('Error:', error);
             }

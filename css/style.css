@@ -1,0 +1,6 @@
+body{
+    background-color: #f8f9fa;
+    background-image: url('../src/images/photo2.jpg');
+    background-size: cover;
+    background-position: center;
+}

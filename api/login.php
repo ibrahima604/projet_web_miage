@@ -12,6 +12,7 @@ foreach ($data as $u) {
         break;
     }
 }
+// Retourner la réponse JSON
 if ($user) {
 
     echo json_encode([
@@ -19,7 +20,9 @@ if ($user) {
         'role' => $user['role']
     ]);
 
-} else {
+} 
+// Si les informations d'identification sont incorrectes, retourner une réponse d'échec
+else {
 
     echo json_encode([
         'success' => false
