@@ -35,7 +35,7 @@ $(document).ready(function () {
                             .addClass('alert alert-success mt-3 text-center')
                             .html('Connexion réussie pour l\'administrateur!').css('color', 'green')
                             .show();
-                        loadPage("../admin.html");
+                        window.location.replace("../admin.html");
                         // Rediriger vers la page d'accueil ou tableau de bord
                     }
                     else {

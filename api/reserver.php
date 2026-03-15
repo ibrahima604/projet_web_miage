@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $requests = $_POST['demande'];
         $guests = $_POST['nbr_personne'];
 
-        $file = __DIR__ . '/Reservations.json';
+       $file = __DIR__.'/../data/Reservations.json';
 
         if (!file_exists($file)) {
             file_put_contents($file, json_encode([]));
@@ -22,12 +22,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $reservations = json_decode(file_get_contents($file), true);
 
         $reservations[] = [
-            'name' => $name,
+            'id' => uniqid(),
+            'nom' => $name,
             'email' => $email,
-            'phone' => $phone,
+            'tel' => $phone,
             'date' => $date,
             'demande' => $requests,
-            'guests' => $guests
+            'nbr_personne' => $guests,
+            'status' => 'en attente'
         ];
 
         file_put_contents($file, json_encode($reservations, JSON_PRETTY_PRINT));
