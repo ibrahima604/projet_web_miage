@@ -155,7 +155,8 @@ $(document).ready(function () {
                         <th><i class="bi bi-person"></i> Nom</th>
                         <th><i class="bi bi-telephone"></i> Téléphone</th>
                         <th><i class="bi bi-envelope"></i> Email</th>
-                        <th><i class="bi bi-calendar"></i> Date</th>
+                        <th><i class="bi bi-calendar"></i> Date de début</th>
+                        <th><i class="bi bi-calendar"></i> Date de fin</th>
                         <th><i class="bi bi-people"></i> Personnes</th>
                         <th><i class="bi bi-chat-left-text"></i> Demande</th>
                         <th><i class="bi bi-info-circle"></i> Statut</th>
@@ -189,7 +190,8 @@ $(document).ready(function () {
                     <td>${res.nom}</td>
                     <td>${res.tel}</td>
                     <td>${res.email}</td>
-                    <td>${res.date}</td>
+                    <td>${res['date de debut']}</td>
+                    <td>${res['date de fin']}</td>
 
                     <td class="text-center">
                         <span class="badge bg-info">${res.nbr_personne}</span>

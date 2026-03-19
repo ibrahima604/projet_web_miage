@@ -4,12 +4,13 @@ header('Content-Type: application/json');
 // Vérifie que la requête est de type POST
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 // Vérifie que tous les champs nécessaires sont présents
-    if (isset($_POST['name'], $_POST['email'], $_POST['phone'], $_POST['date'], $_POST['demande'], $_POST['nbr_personne'])) {
+    if (isset($_POST['name'], $_POST['email'], $_POST['phone'], $_POST['date'], $_POST['demande'], $_POST['nbr_personne'], $_POST['date_fin'])) {
 
         $name = $_POST['name'];
         $email = $_POST['email'];
         $phone = $_POST['phone'];
         $date = $_POST['date'];
+        $date_fin = $_POST['date_fin'];
         $requests = $_POST['demande'];
         $guests = $_POST['nbr_personne'];
 
@@ -26,7 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'nom' => $name,
             'email' => $email,
             'tel' => $phone,
-            'date' => $date,
+            'date de debut' => $date,
+            'date de fin' => $date_fin,
             'demande' => $requests,
             'nbr_personne' => $guests,
             'status' => 'en attente'

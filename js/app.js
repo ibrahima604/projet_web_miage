@@ -39,7 +39,7 @@ $(document).ready(function () {
                         // Rediriger vers la page d'accueil ou tableau de bord
                     }
                     else {
-                        //loadPage("user.html");
+                        window.location.replace("../pages/user_dashboard.html");
                         $('#message')
                             .removeClass()
                             .addClass('alert alert-success mt-3 text-center')

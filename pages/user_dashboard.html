@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord utilisateur</title>
+    <script src="../js/user_dashboard.js" defer></script>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+
+</head>
+
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-primary shadow text-black">
+            <div class="container-fluid">
+
+                <!-- Logo agence -->
+                <a class="navbar-brand fw-bold text-warning" href="#">
+                    <i class="bi bi-globe"></i> MonAgence
+                </a>
+
+                <!-- Bouton burger -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarUser">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Menu -->
+                <div class="collapse navbar-collapse" id="navbarUser">
+
+                    <ul class="navbar-nav ms-auto align-items-lg-center">
+
+                        <!-- Services -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="messervices">
+                                <i class="bi bi-box-seam"></i> Mes services
+                            </a>
+                        </li>
+
+                        <!-- Réservations -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="mesreservations">
+                                <i class="bi bi-calendar-check"></i> Mes réservations
+                            </a>
+                        </li>
+                        <!-- Activités -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="mesactivites">
+                                <i class="bi bi-list-task"></i> Mes activités
+                            </a>
+                        </li>
+
+                        <!-- Profil -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="monprofil">
+                                <i class="bi bi-person-circle"></i> Profil
+                            </a>
+                        </li>
+
+                        <!-- Déconnexion (bouton) -->
+                        <li class="nav-item ms-lg-3">
+                            <a class="btn btn-warning btn-sm fw-bold" href="#" id="logout">
+                                <i class="bi bi-box-arrow-right"></i> Déconnexion
+                            </a>
+                        </li>
+
+                    </ul>
+
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mt-4">
+        <div id="content" class="p-4 bg-white rounded shadow w-100 text-center">
+            <h2>Bienvenue sur votre tableau de bord</h2>
+            <p>Utilisez le menu pour accéder à vos services, réservations et profil.</p>
+        </div>
+        <div id="dashboardContent" class="mt-4 d-none"></div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+
+
+
+</html>
