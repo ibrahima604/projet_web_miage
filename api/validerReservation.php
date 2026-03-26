@@ -65,9 +65,10 @@ if (!$existingUser) {
     $users[] = [
         'nom' => $reservationSelectionnee['nom'],
         'email' => $reservationSelectionnee['email'],
+        'role' => 'user',
         'password' => $passwordHash,
         'tel'=>$reservationSelectionnee['tel'],
-        'role' => 'user'
+        
     ];
     file_put_contents($users_file, json_encode($users, JSON_PRETTY_PRINT));
 }
