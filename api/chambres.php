@@ -8,13 +8,6 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
     echo json_encode(['error' => 'Accès refusé']);
     exit;
 }
-
-// Récupère les réservations
-$file = __DIR__ . '/../data/Reservations.json';
-$reservations = [];
-if (file_exists($file)) {
-    $reservations = json_decode(file_get_contents($file), true);
-}
 $chambres=json_decode(file_get_contents(__DIR__.'/../data/chambres.json'), true);
 $chambres_libres = [];
 foreach($chambres['chambres'] as $chambre){
@@ -28,6 +21,6 @@ foreach($chambres['chambres'] as $chambre){
 
 // Renvoie les données JSON
 echo json_encode([
-    'reservations' => $reservations,
+    'success' => true,
     'chambres' => $chambres_libres
 ]);

@@ -70,8 +70,9 @@ $(document).ready(function (event) {
     //les réservations de l'utilisateur
     $('#mesreservations').click(function (event) {
         event.preventDefault();
+        $.ajax({})
         // Ici tu peux charger les réservations de l'utilisateur ou rediriger vers une page de réservations
-        alert("Page de réservations en construction!");
+        alert("Page de réservations en construction!")
     });
     requireUser(function (user) {
         console.log("User connecté :", user);

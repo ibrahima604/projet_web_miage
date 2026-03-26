@@ -5,6 +5,8 @@ if (isset($_SESSION['user'])) {
     $data=file_get_contents('../data/User_reservations.json');
     $reservations=json_decode($data, true);
     $userReservations = [];
+    $chambres=file_get_contents('../data/chambres.json');
+    $chambres=json_decode($chambres, true);
     foreach($reservations as $reservation){
         if($reservation['email'] === $_SESSION['user']['email']){
             $userReservations[] = $reservation;
