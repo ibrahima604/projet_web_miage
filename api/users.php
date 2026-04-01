@@ -21,11 +21,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     $usersFiltered = array_filter($users, function($u) {
         return isset($u['role']) && $u['role'] === 'user';
     });
-
+// Réindexer les utilisateurs filtrés et ne garder que les champs nécessaires
     $usersFiltered = array_map(function($u) {
         return [
             'email' => $u['email'],
-            'fullname' => $u['name'] ?? $u['fullname'] ?? '',
+            'nom' => $u['nom'],
+            'tel' => $u['tel'],
             'role' => $u['role']
         ];
     }, $usersFiltered);

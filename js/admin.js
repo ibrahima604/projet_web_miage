@@ -88,93 +88,112 @@ $(document).ready(function () {
             alert("Supprimer utilisateur : " + index);
         }
     });
+$('#linkReservations').on('click', function(e) {
+    e.preventDefault();
 
-    //récupérer les réservations et les afficher dans un tableau
-    $('#linkReservations').on('click', function (e) {
-        e.preventDefault();
+    $.get('../api/reservations.php', function(response) {
+        let reservations = response.reservations || [];
 
-        $.get('../api/reservations.php', function (response) {
+        // Génère le badge de statut
+        const getStatusBadge = (status) => {
+            const badges = {
+                'en attente': 'bg-warning text-dark',
+                'confirmée': 'bg-success',
+                'annulée': 'bg-danger',
+                'terminée': 'bg-secondary'
+            };
+            const texts = {
+                'en attente': 'En attente',
+                'confirmée': 'Confirmée',
+                'annulée': 'Refusée',
+                'terminée': 'Terminée'
+            };
+            return `<span class="badge ${badges[status] || 'bg-secondary'}">${texts[status] || 'Inconnu'}</span>`;
+        };
 
-            let reservations = response.reservations || [];
+        // Génère le tableau HTML
+        const generateTable = (resList, showActions) => {
+            if (resList.length === 0) {
+                return '<p class="text-center text-muted my-3">Aucune réservation</p>';
+            }
 
             let html = `
-            <div class="d-flex justify-content-between align-items-center mb-4 text-center">
-                <h2 class="fw-bold text-center">
-                    <i class="bi bi-calendar-check text-primary"></i>
-                    Liste des réservations
-                </h2>
-            </div>
-
-            <div class="table-responsive shadow rounded">
-            <table class="table table-hover table-striped table-bordered align-middle">
-
-            <thead class="table-dark text-center">
-                <tr>
-                    <th><i class="bi bi-person"></i> Nom</th>
-                    <th><i class="bi bi-telephone"></i> Téléphone</th>
-                    <th><i class="bi bi-envelope"></i> Email</th>
-                    <th><i class="bi bi-calendar"></i> Date de début</th>
-                    <th><i class="bi bi-calendar"></i> Date de fin</th>
-                    <th><i class="bi bi-people"></i> Personnes</th>
-                    <th><i class="bi bi-chat-left-text"></i> Demande</th>
-                    <th><i class="bi bi-info-circle"></i> Statut</th>
-                    <th><i class="bi bi-gear"></i> Actions</th>
-                </tr>
-            </thead>
-
-            <tbody>
+                <div class="table-responsive shadow rounded mb-4">
+                    <table class="table table-hover table-striped table-bordered align-middle">
+                        <thead class="table-dark text-center">
+                            <tr>
+                                <th>Nom</th>
+                                <th>Téléphone</th>
+                                <th>Email</th>
+                                <th>Date début</th>
+                                <th>Date fin</th>
+                                <th>Personnes</th>
+                                <th>Demande</th>
+                                <th>Statut</th>
+                                ${showActions ? '<th>Actions</th>' : ''}
+                            </tr>
+                        </thead>
+                        <tbody>
             `;
 
-            reservations.forEach(function (res) {
-                let id = res.id;
-                let statusBadge = `
-                    <span class="badge bg-warning text-dark">En attente</span>
-                `;
-
-                if (res.status === "confirmée") {
-                    statusBadge = `<span class="badge bg-success">Confirmée</span>`;
-                } else if (res.status === "annulée") {
-                    statusBadge = `<span class="badge bg-danger">Refusée</span>`;
-                }
-
+            resList.forEach(r => {
                 html += `
-                <tr>
-                    <td>${res.nom}</td>
-                    <td>${res.tel}</td>
-                    <td>${res.email}</td>
-                    <td>${res['date de debut']}</td>
-                    <td>${res['date de fin']}</td>
-
-                    <td class="text-center">
-                        <span class="badge bg-info">${res.nbr_personne}</span>
-                    </td>
-
-                    <td>${res.demande || '-'}</td>
-
-                    <td class="text-center">${statusBadge}</td>
-
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-success me-2 btn-validate" data-id="${id}">
-                            <i class="bi bi-check-circle"></i> Valider
-                        </button>
-
-                        <button class="btn btn-sm btn-danger btn-reject" data-id="${id}">
-                            <i class="bi bi-x-circle"></i> Refuser
-                        </button>
-                    </td>
-                </tr>
+                    <tr>
+                        <td>${r.nom || '-'}</td>
+                        <td>${r.tel || '-'}</td>
+                        <td>${r.email || '-'}</td>
+                        <td>${r['date de debut'] || '-'}</td>
+                        <td>${r['date de fin'] || '-'}</td>
+                        <td class="text-center"><span class="badge bg-info">${r.nbr_personne || '0'}</span></td>
+                        <td>${r.demande || '-'}</td>
+                        <td class="text-center">${getStatusBadge(r.status)}</td>
                 `;
+                if (showActions) {
+                    html += `
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-success me-2 btn-validate" data-id="${r.id}">Valider</button>
+                            <button class="btn btn-sm btn-danger btn-reject" data-id="${r.id}">Refuser</button>
+                        </td>
+                    `;
+                }
+                html += `</tr>`;
             });
 
             html += `</tbody></table></div>`;
+            return html;
+        };
 
-            $('#adminContent').removeClass('d-none').addClass('d-block').html(html);
+        // Filtre les réservations "en attente" par défaut
+        let enAttente = reservations.filter(r => r.status === 'en attente');
 
-        }, 'json');
+        // HTML final avec le filtre (sans "Toutes")
+        let html = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="fw-bold text-center">
+                    <i class="bi bi-calendar-check text-primary"></i> Réservations en attente
+                </h2>
+                <select class="form-select w-auto" id="filterStatus">
+                    <option value="confirmée">Confirmées</option>
+                    <option value="annulée">Annulées</option>
+                    <option value="terminée">Terminées</option>
+                </select>
+            </div>
+            <div id="reservationsTable">${generateTable(enAttente, true)}</div>
+        `;
 
+        $('#adminContent').removeClass('d-none').addClass('d-block').html(html);
         $('#dashboardHome').addClass('d-none').removeClass('d-block');
-    });
 
+        // Gestion du filtre
+        $('#filterStatus').on('change', function() {
+            const filter = $(this).val();
+            const filtered = reservations.filter(r => r.status === filter);
+            // Met à jour le tableau avec les réservations filtrées
+            $('#reservationsTable').html(generateTable(filtered, false)); 
+        });
+
+    }, 'json');
+});
     // Clic sur valider réservation
     $(document).on('click', '.btn-validate', function () {
         let reservationId = $(this).data('id');
