@@ -25,7 +25,7 @@ $reservationSelectionnee = null;
 foreach ($reservations as &$res) {
     if ($res['id'] === $id_reservation) {
         $res['status'] = $status;
-        $res['id_chambre'] = $id_chambre;
+        $res['id_chambre'] = intval($id_chambre);
         $reservationSelectionnee = $res;
         break;
     }

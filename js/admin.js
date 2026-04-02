@@ -1,3 +1,8 @@
+if (typeof jQuery != 'undefined') {  
+    // jQuery is loaded => print the version
+    console.log(jQuery.fn.jquery);
+}
+
 $(document).ready(function () {
     // Vérifier que l'utilisateur est connecté et a le rôle d'administrateur
     function requireAdmin(callback) {

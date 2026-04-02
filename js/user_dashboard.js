@@ -1,6 +1,11 @@
-// ============================
+//fonction pour calculer le nombre de jours entre deux dates
+function calculateDays(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const timeDiff = end.getTime() - start.getTime();
+    return Math.ceil(timeDiff / (1000 * 3600 * 24));
+}
 // Vérification de la session
-// ============================
 function requireUser(callback) {
     $.ajax({
         url: '../api/check_session.php',
@@ -19,14 +24,10 @@ function requireUser(callback) {
         });
 }
 
-// ============================
-// Code principal
-// ============================
-$(document).ready(function () {
 
-    // ============================
+// Code principal
+$(document).ready(function () {
     // Déconnexion
-    // ============================
     $('#logout').click(function (event) {
         event.preventDefault();
         $.post('../api/logout.php', function (response) {
@@ -120,16 +121,17 @@ $(document).ready(function () {
             });
     });
     // Afficher les réservations de l'utilisateur
- $('#mesreservations').click(function (e) {
-    e.preventDefault();
-    $.ajax({
-        url: '../api/reservationsUser.php',
-        method: 'GET',
-        dataType: 'json'
-    })
-    .done(function (response) {
-        if (response && response.success) {
-            let html = `
+    $('#mesreservations').click(function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: '../api/reservationsUser.php',
+            method: 'GET',
+            dataType: 'json'
+        })
+            .done(function (response) {
+                if (response && response.success) {
+                    console.log("Réservation récupérée :" + response.reservations[0]);
+                    let html = `
             <div class="container mt-4">
                 <h3 class="mb-4"><i class="bi bi-calendar-check-fill"></i> Mes Réservations</h3>
                 <div class="table-responsive">
@@ -141,21 +143,27 @@ $(document).ready(function () {
                                 <th scope="col"><i class="bi bi-person"></i> Client</th>
                                 <th scope="col"><i class="bi bi-calendar-event"></i> Date début</th>
                                 <th scope="col"><i class="bi bi-calendar-check"></i> Date fin</th>
+                                <th scope="col"><i class="bi bi-clock-history"></i> Durée (jours)</th>
+                                <th scope="col"><i class="bi bi-currency-euro"></i> Coût total</th>
                                 <th scope="col"><i class="bi bi-info-circle"></i> Statut</th>
                                 <th scope="col"><i class="bi bi-gear"></i> Actions</th>
                             </tr>
                         </thead>
                         <tbody>
+                            <!-- Afficher chaque réservation de l'utilisateur en utilisant map et join pour créer les lignes du tableau -->
                             ${response.reservations.map(reservation => `
+
                                 <tr>
-                                    <td>${reservation.chambre.type} (ID: ${reservation.chambre.id})</td>
+                                    <td>${reservation.id_chambre}</td>
                                     <td>${reservation.prix} €</td>
                                     <td>${reservation.email}</td>
                                     <td>${reservation['date de debut']}</td>
                                     <td>${reservation['date de fin']}</td>
+                                    <td>${calculateDays(reservation['date de debut'], reservation['date de fin'])}</td>
+                                    <td>${calculateDays(reservation['date de debut'], reservation['date de fin']) * reservation.prix} €</td>
                                     <td>${reservation.status}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-primary me-2">
+                                        <button class="btn btn-sm btn-outline-primary me-2" id="viewInvoice" data-id="${reservation.id}">
                                             <i class="bi bi-eye-fill"></i> Voir facture
                                         </button>
                                         <button class="btn btn-sm btn-primary me-2">
@@ -169,18 +177,18 @@ $(document).ready(function () {
                 </div>
             </div>
             `;
-            $('#dashboardContent').html(html);
-            console.log("Chambres :", response.chambres);
-        }
-        else {
-            console.log("Aucune réservation trouvée ou erreur serveur.");
-        }
-    })
-    .fail(function (xhr, status, error) {
-        console.error("Erreur AJAX :", status, error);
-        alert("Erreur lors du chargement des réservations. Voir la console pour plus de détails.");
+                    $('#dashboardContent').html(html);
+                    console.log("Réservations :", response.reservations);
+                }
+                else {
+                    console.log("Aucune réservation trouvée ou erreur serveur.");
+                }
+            })
+            .fail(function (xhr, status, error) {
+                console.error("Erreur AJAX :", status, error);
+                alert("Erreur lors du chargement des réservations. Voir la console pour plus de détails.");
+            });
     });
-});
 
     // Validation du formulaire de mise à jour du profil
 
@@ -215,12 +223,35 @@ $(document).ready(function () {
             });
     });
 
-    // ============================
+
     // Vérifier si l'utilisateur est connecté au chargement de la page
-    // ============================
+
     requireUser(function (user) {
         console.log("Utilisateur connecté :", user);
         $('.navbar-brand').append(' - ' + user.fullname);
+    });
+
+    $(document).on('click', '#viewInvoice', function () {
+        const reservationId = $(this).data('id');
+        $.ajax({
+            url: '../api/facture.php',
+            method: 'GET',
+            data: { id: reservationId },
+            dataType: 'json'
+        })
+            .done(function (response) {
+                if (response.success) {
+                    const facture = response.reservation;
+                    console.log("Facture récupérée :", facture);
+                }
+                    else {
+                    console.error("Erreur lors de la récupération de la facture.");
+                }
+
+            })
+            .fail(function () {
+                alert("Erreur lors de la récupération de la facture.");
+            });
     });
 
 });
