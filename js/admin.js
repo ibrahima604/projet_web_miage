@@ -34,52 +34,101 @@ $(document).ready(function () {
 
     //respndre à l'événement de clic sur le lien "Réservations" pour afficher la liste des réservations
     $('#linkUsers').on('click', function (e) {
-        e.preventDefault();
+    e.preventDefault();
 
-        $.get('../api/users.php', function (users) {
+    $.get('../api/users.php', function (users) {
 
-            let html = `
-                <h2 class="mb-4 text-center">Liste des utilisateurs</h2>
+        let html = `
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0">👥 Liste des utilisateurs</h4>
+                    <input type="text" id="searchUser" class="form-control w-25" placeholder="Rechercher...">
+                </div>
+
                 <div class="table-responsive">
-                <table class="table table-striped table-hover table-bordered align-middle">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Email</th>
-                            <th>Nom complet</th>
-                            <th>Rôle</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                    <table class="table align-middle table-hover">
+                        <thead class="table-light">
+                            <tr class="text-center">
+                                <th>Email</th>
+                                <th>Nom</th>
+                                <th>Rôle</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+
+        users.forEach(function (user, index) {
+
+            let roleBadge = user.role === 'admin'
+                ? `<span class="badge bg-danger">Admin</span>`
+                : `<span class="badge bg-primary">Client</span>`;
+
+            html += `
+                <tr class="text-center">
+                    <td class="fw-semibold">${user.email}</td>
+                    <td>${user.nom || '<span class="text-muted">Non renseigné</span>'}</td>
+                    <td>${roleBadge}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-2 btn-edit" data-index="${index}">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger btn-delete" data-index="${index}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
             `;
+        });
 
-            users.forEach(function (user, index) {
-                html += `
-                    <tr>
-                        <td>${user.email}</td>
-                        <td>${user.fullname || ''}</td>
-                        <td>${user.role}</td>
-                        <td>
-                            <button class="btn btn-sm btn-success me-2 btn-edit" data-index="${index}">
-                                <i class="bi bi-pencil-square"></i> Modifier
-                            </button>
-                            <button class="btn btn-sm btn-danger btn-delete" data-index="${index}">
-                                <i class="bi bi-trash"></i> Supprimer
-                            </button>
-                        </td>
-                    </tr>
-                `;
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+        `;
+
+        $('#adminContent')
+            .removeClass('d-none')
+            .addClass('d-block')
+            .html(html);
+
+        $('#dashboardHome').addClass('d-none');
+
+        // Fonction de recherche en temps réel
+        $('#searchUser').on('keyup', function () {
+            let value = $(this).val().toLowerCase();
+
+            $('tbody tr').filter(function () {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
             });
+        });
 
-            html += `</tbody></table></div>`;
+        
+        $('.btn-delete').click(function () {
+            let index = $(this).data('index');
+            let user = users[index];
 
-            $('#adminContent').removeClass('d-none').addClass('d-block').html(html);
+            if (confirm("Supprimer " + user.email + " ?")) {
+                console.log("Delete user:", user);
+            }
+        });
 
-        }, 'json');
+       
+        $('.btn-edit').click(function () {
+            let index = $(this).data('index');
+            let user = users[index];
 
-        $('#dashboardHome').addClass('d-none').removeClass('d-block');
-    });
+            alert("Modifier : " + user.email);
+            
+        });
 
+    }, 'json');
+});
     // Actions utilisateurs
     $(document).on('click', '.btn-edit', function () {
         let index = $(this).data('index');
@@ -93,74 +142,102 @@ $(document).ready(function () {
             alert("Supprimer utilisateur : " + index);
         }
     });
-$('#linkReservations').on('click', function(e) {
+// reservations
+$('#linkReservations').on('click', function (e) {
     e.preventDefault();
 
-    $.get('../api/reservations.php', function(response) {
-        let reservations = response.reservations || [];
+    $.get('../api/reservations.php', function (response) {
 
-        // Génère le badge de statut
+        let reservations = response.reservations || [];
+        let prestations = response.prestations || [];
+
+        // statut
         const getStatusBadge = (status) => {
-            const badges = {
+            const styles = {
                 'en attente': 'bg-warning text-dark',
                 'confirmée': 'bg-success',
                 'annulée': 'bg-danger',
                 'terminée': 'bg-secondary'
             };
-            const texts = {
-                'en attente': 'En attente',
-                'confirmée': 'Confirmée',
-                'annulée': 'Refusée',
-                'terminée': 'Terminée'
-            };
-            return `<span class="badge ${badges[status] || 'bg-secondary'}">${texts[status] || 'Inconnu'}</span>`;
+            return `<span class="badge ${styles[status] || 'bg-secondary'}">${status}</span>`;
         };
 
-        // Génère le tableau HTML
-        const generateTable = (resList, showActions) => {
-            if (resList.length === 0) {
-                return '<p class="text-center text-muted my-3">Aucune réservation</p>';
-            }
+        // Dropdown prestations
+        const prestationOptions = prestations.map(p =>
+            `<option value="${p.id}">${p.libelle} (${p.prix}€)</option>`
+        ).join('');
+
+        // fonction pour generer la table
+        const generateTable = (list, showActions) => {
 
             let html = `
-                <div class="table-responsive shadow rounded mb-4">
-                    <table class="table table-hover table-striped table-bordered align-middle">
-                        <thead class="table-dark text-center">
-                            <tr>
-                                <th>Nom</th>
-                                <th>Téléphone</th>
-                                <th>Email</th>
-                                <th>Date début</th>
-                                <th>Date fin</th>
-                                <th>Personnes</th>
-                                <th>Demande</th>
-                                <th>Statut</th>
-                                ${showActions ? '<th>Actions</th>' : ''}
-                            </tr>
-                        </thead>
-                        <tbody>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Client</th>
+                            <th>Séjour</th>
+                            <th>Pers</th>
+                            <th>Prestations</th>
+                            <th>Réduction</th>
+                            <th>Statut</th>
+                            ${showActions ? '<th>Actions</th>' : ''}
+                        </tr>
+                    </thead>
+                    <tbody>
             `;
 
-            resList.forEach(r => {
+            list.forEach(r => {
+
                 html += `
-                    <tr>
-                        <td>${r.nom || '-'}</td>
-                        <td>${r.tel || '-'}</td>
-                        <td>${r.email || '-'}</td>
-                        <td>${r['date de debut'] || '-'}</td>
-                        <td>${r['date de fin'] || '-'}</td>
-                        <td class="text-center"><span class="badge bg-info">${r.nbr_personne || '0'}</span></td>
-                        <td>${r.demande || '-'}</td>
-                        <td class="text-center">${getStatusBadge(r.status)}</td>
+                <tr>
+                    <td>${r.nom}</td>
+
+                    <td>
+                        <strong>${r['date de debut']}</strong><br>
+                        <small>${r['date de fin']}</small>
+                    </td>
+
+                    <td><span class="badge bg-info">${r.nbr_personne}</span></td>
+
+                    <!-- PRESTATIONS -->
+                    <td>
+                        <select class="form-select form-select-sm add-prestation" data-id="${r.id}">
+                            <option value="">+ Ajouter</option>
+                            ${prestationOptions}
+                        </select>
+
+                        <div class="mt-1 small text-muted prestations-list" id="prest-${r.id}">
+                            ${r.prestations ? r.prestations.join(', ') : ''}
+                        </div>
+                    </td>
+
+                    <!-- REDUCTION -->
+                    <td>
+                        <select class="form-select form-select-sm reduction" data-id="${r.id}">
+                            <option value="0">0%</option>
+                            <option value="10">-10%</option>
+                            <option value="20">-20%</option>
+                            <option value="50">-50%</option>
+                        </select>
+                    </td>
+
+                    <td>${getStatusBadge(r.status)}</td>
                 `;
+
                 if (showActions) {
                     html += `
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-success me-2 btn-validate" data-id="${r.id}">Valider</button>
-                            <button class="btn btn-sm btn-danger btn-reject" data-id="${r.id}">Refuser</button>
-                        </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-success btn-validate" data-id="${r.id}">
+                            ✔
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger btn-reject" data-id="${r.id}">
+                            ✖
+                        </button>
+                    </td>
                     `;
                 }
+
                 html += `</tr>`;
             });
 
@@ -168,34 +245,86 @@ $('#linkReservations').on('click', function(e) {
             return html;
         };
 
-        // Filtre les réservations "en attente" par défaut
-        let enAttente = reservations.filter(r => r.status === 'en attente');
-
-        // HTML final avec le filtre (sans "Toutes")
+        // UI
         let html = `
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h2 class="fw-bold text-center">
-                    <i class="bi bi-calendar-check text-primary"></i> Réservations en attente
-                </h2>
-                <select class="form-select w-auto" id="filterStatus">
-                    <option value="confirmée">Confirmées</option>
-                    <option value="annulée">Annulées</option>
-                    <option value="terminée">Terminées</option>
-                </select>
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h4 class="mb-4">Gestion des réservations</h4>
+                <div id="reservationsTable"></div>
             </div>
-            <div id="reservationsTable">${generateTable(enAttente, true)}</div>
+        </div>
         `;
 
-        $('#adminContent').removeClass('d-none').addClass('d-block').html(html);
-        $('#dashboardHome').addClass('d-none').removeClass('d-block');
+        $('#adminContent').html(html);
+        $('#dashboardHome').addClass('d-none');
 
-        // Gestion du filtre
-        $('#filterStatus').on('change', function() {
-            const filter = $(this).val();
-            const filtered = reservations.filter(r => r.status === filter);
-            // Met à jour le tableau avec les réservations filtrées
-            $('#reservationsTable').html(generateTable(filtered, false)); 
-        });
+        let currentFilter = 'en attente';
+
+        const updateTable = () => {
+            let filtered = reservations.filter(r => r.status === currentFilter);
+            $('#reservationsTable').html(generateTable(filtered, true));
+        };
+
+        updateTable();
+
+        // ajout de prestation a la demande du client
+       // ajout de prestation à la demande du client
+$(document).on('change', '.add-prestation', function () {
+    let reservationId = $(this).data('id');
+    let prestationId = $(this).val();
+
+    if (!prestationId) return;
+
+    $.ajax({
+        url: '../api/addPrestation.php',
+        method: 'POST',
+        data: {
+            reservation_id: reservationId,
+            prestation_id: prestationId
+        },
+        success: function (response) {
+            if (response.success) {
+                // rafraîchir la liste des prestations dans la table
+                $('#linkReservations').click();
+            } else {
+                console.error("Erreur API addPrestation:", response.error);
+                alert("Impossible d'ajouter la prestation : " + response.error);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("Erreur lors de l'ajout de la prestation :", error);
+            alert("Impossible d'ajouter la prestation.");
+        }
+    });
+});
+
+// mise à jour de la réduction
+$(document).on('change', '.reduction', function () {
+    let reservationId = $(this).data('id');
+    let reduction = $(this).val();
+
+    $.ajax({
+        url: '../api/updateReduction.php',
+        method: 'POST',
+        data: {
+            reservation_id: reservationId,
+            reduction: reduction
+        },
+        success: function (response) {
+            if (response.success) {
+                // rafraîchir la table
+                $('#linkReservations').click();
+            } else {
+                console.error("Erreur API updateReduction:", response.error);
+                alert("Impossible de mettre à jour la réduction : " + response.error);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("Erreur lors de la mise à jour de la réduction :", error);
+            alert("Impossible de mettre à jour la réduction.");
+        }
+    });
+});
 
     }, 'json');
 });

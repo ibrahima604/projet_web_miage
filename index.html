@@ -4,52 +4,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Site web de reservation</title>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <title>Blue Lagoon Retreat</title>
+
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <script src="js/app.js" defer></script>
-    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body class="bg-light">
-    <header class="bg-primary text-white text-center py-3 mb-4 w-100">
-        <nav class="container d-flex justify-content-center align-items-center mb-0 py-0 w-100">
-            <ul class="list-unstyled mb-0">
-                <li class="d-inline mx-3">
-                    <span>
-                        <i class="bi bi-house-door-fill"></i>
-                    </span>
-                    <a href="index.html" class="text-white text-decoration-none">Accueil</a>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">
+            <img src="src/images/logo_web.png" alt="Logo" width="30" class="d-inline-block align-text-top">
+             Blue Lagoon Retreat
+        </a>
+
+        <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#menu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="menu">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#"><i class="bi bi-house"></i> Accueil</a>
                 </li>
-                <li class="d-inline mx-3">
-                    <span>
-                        <i class="bi bi-calendar-check"></i>
-                    </span>
-                    <a href="pages/reserver.html" class="text-white text-decoration-none">Reserver</a>
+                <li class="nav-item">
+                    <a class="nav-link" href="pages/reserver.html"><i class="bi bi-calendar-check"></i> Réserver</a>
                 </li>
-                <li class="d-inline mx-3">
-                    <span>
-                        <i class="bi bi-person-circle"></i>
-                    </span>
-                    <a href="pages/login.html" class="text-white text-decoration-none">Connexion</a>
+                <li class="nav-item">
+                    <a class="nav-link" href="pages/login.html"><i class="bi bi-person"></i> Connexion</a>
                 </li>
             </ul>
-        </nav>
-    </header>
-    <!-- Contenu de la page d'accueil -->
-    <div class="container text-center bg-black text-white p-5 rounded shadow-lg w-75">
-        <h1 class="mb-4">Bienvenue sur notre site de réservation</h1>
-        <p class="lead mb-4">Réservez votre table en quelques clics et profitez d'une expérience culinaire inoubliable.</p>
-        <a href="pages/reserver.html" class="btn btn-primary btn-lg">
-            <i class="bi bi-calendar-check me-2"></i>
-            Réserver maintenant
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero d-flex align-items-center text-center">
+    <div class="container">
+        <h1>Bienvenue à Blue Lagoon Retreat</h1>
+        <p class="lead mt-3">
+            Un lieu paradisiaque entre mer turquoise et nature sauvage
+        </p>
+        <a href="pages/reserver.html" class="btn btn-custom btn-lg mt-3">
+            <i class="bi bi-calendar-check"></i> Réserver maintenant
         </a>
     </div>
+</section>
 
+<!-- DESCRIPTION -->
+<section class="container my-5 text-center">
+    <h2 class="mb-4">Découvrez notre paradis</h2>
+    <p class="text-muted">
+        Profitez d’un séjour inoubliable avec des chambres luxueuses, des activités nautiques,
+        et une expérience unique au cœur de la nature.
+    </p>
+</section>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-        crossorigin="anonymous"></script>
+<!-- SERVICES -->
+<section class="container mb-5">
+    <div class="row text-center g-4">
+
+        <div class="col-md-4">
+            <div class="card p-3 shadow">
+                <i class="bi bi-house-door display-5 text-primary"></i>
+                <h4 class="mt-3">Chambres de luxe</h4>
+                <p>Des chambres confortables avec vue sur la mer.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card p-3 shadow">
+                <i class="bi bi-water display-5 text-info"></i>
+                <h4 class="mt-3">Activités</h4>
+                <p>Kayak, bateau, plongée et bien plus encore.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card p-3 shadow">
+                <i class="bi bi-cup-hot display-5 text-warning"></i>
+                <h4 class="mt-3">Restauration</h4>
+                <p>Des plats raffinés pour une expérience culinaire unique.</p>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="text-center py-4">
+    <div class="container">
+        <p class="mb-2">© 2026 Blue Lagoon Retreat - Tous droits réservés</p>
+
+        <div>
+            <a href="#" class="text-white me-3"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="text-white me-3"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="text-white"><i class="bi bi-twitter"></i></a>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

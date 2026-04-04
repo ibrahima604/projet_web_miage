@@ -25,6 +25,12 @@ if (file_exists($file_ch)) {
 
 $today = date('Y-m-d');
 $updatedReservations = [];
+$file_prestations = __DIR__ . '/../data/Prestations.json';
+$prestations = [];
+if (file_exists($file_prestations)) {
+    $prestations = json_decode(file_get_contents($file_prestations), true);
+}
+
 
 //Mettre à jour automatiquement les réservations expirées
 foreach ($reservations as &$reservation) {
@@ -56,6 +62,7 @@ file_put_contents($file_ch, json_encode($chambres, JSON_PRETTY_PRINT));
 // Renvoie les données JSON mises à jour
 echo json_encode([
     'success' => true,
+    'prestations' => $prestations,
     'reservations' => $reservations,
     'updated' => $updatedReservations
 ]);
