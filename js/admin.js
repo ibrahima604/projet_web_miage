@@ -146,188 +146,245 @@ $(document).ready(function () {
 $('#linkReservations').on('click', function (e) {
     e.preventDefault();
 
-    $.get('../api/reservations.php', function (response) {
+    $.get('../api/reservations.php')
+    .done(function (response) {
 
         let reservations = response.reservations || [];
-        let prestations = response.prestations || [];
+        let prestations  = response.prestations  || [];
 
-        // statut
         const getStatusBadge = (status) => {
-            const styles = {
-                'en attente': 'bg-warning text-dark',
-                'confirmée': 'bg-success',
-                'annulée': 'bg-danger',
-                'terminée': 'bg-secondary'
+            const map = {
+                'en attente': ['warning',   'text-dark', 'bi-clock-history'],
+                'confirmée':  ['success',   '',          'bi-check-circle'],
+                'annulée':    ['danger',    '',          'bi-x-circle'],
+                'terminée':   ['secondary', '',          'bi-archive'],
             };
-            return `<span class="badge ${styles[status] || 'bg-secondary'}">${status}</span>`;
+            const [bg, txt, icon] = map[status] ?? ['secondary', '', 'bi-question-circle'];
+            return `<span class="badge text-bg-${bg} ${txt} d-inline-flex align-items-center gap-1">
+                        <i class="bi ${icon}"></i>${status}
+                    </span>`;
         };
 
-        // Dropdown prestations
         const prestationOptions = prestations.map(p =>
             `<option value="${p.id}">${p.libelle} (${p.prix}€)</option>`
         ).join('');
 
-        // fonction pour generer la table
-        const generateTable = (list, showActions) => {
+        const generateTable = (list) => {
+            if (!list.length) {
+                return `<div class="text-center text-muted py-5">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            Aucune réservation dans cette catégorie.
+                        </div>`;
+            }
 
-            let html = `
+            let rows = '';
+            list.forEach(r => {
+                const status = r.status;
+
+                // Actions selon statut
+                let actions = '';
+                if (status === 'en attente') {
+                    actions = `
+                        <button class="btn btn-sm btn-success btn-validate d-inline-flex align-items-center gap-1" data-id="${r.id}">
+                            <i class="bi bi-check-lg"></i> Valider
+                        </button>
+                        <button class="btn btn-sm btn-danger btn-reject d-inline-flex align-items-center gap-1" data-id="${r.id}">
+                            <i class="bi bi-x-lg"></i> Refuser
+                        </button>`;
+                } else if (status === 'confirmée') {
+                    actions = `
+                        <button class="btn btn-sm btn-outline-primary btn-edit d-inline-flex align-items-center gap-1" data-id="${r.id}">
+                            <i class="bi bi-pencil"></i> Modifier
+                        </button>`;
+                }
+                // terminée / annulée → rien
+
+                rows += `
+                <tr>
+                    <td>
+                        <div class="fw-semibold">${r.nom}</div>
+                        <div class="text-muted small">#${r.id}</div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-1 small">
+                            <i class="bi bi-calendar-event text-muted"></i>
+                            <span>${r['date de debut']}</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-1 small text-muted">
+                            <i class="bi bi-arrow-right"></i>
+                            <span>${r['date de fin']}</span>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge text-bg-info">
+                            <i class="bi bi-people-fill me-1"></i>${r.nbr_personne}
+                        </span>
+                    </td>
+                    <td style="min-width:180px">
+                        <select class="form-select form-select-sm add-prestation" data-id="${r.id}">
+                            <option value="">+ Ajouter une prestation</option>
+                            ${prestationOptions}
+                        </select>
+                        <div class="mt-1 small text-muted prestations-list" id="prest-${r.id}">
+                            ${r.prestations?.length
+                                ? r.prestations.map(p => `<span class="badge text-bg-secondary me-1">${p}</span>`).join('')
+                                : '<span class="fst-italic">Aucune</span>'}
+                        </div>
+                    </td>
+                    <td class="text-center" style="min-width:110px">
+                        <select class="form-select form-select-sm reduction" data-id="${r.id}">
+                            <option value="0">0 %</option>
+                            <option value="10">−10 %</option>
+                            <option value="20">−20 %</option>
+                            <option value="50">−50 %</option>
+                        </select>
+                    </td>
+                    <td class="text-center">${getStatusBadge(status)}</td>
+                    <td class="text-center" style="min-width:160px">
+                        <div class="d-flex gap-1 justify-content-center flex-wrap">${actions}</div>
+                    </td>
+                </tr>`;
+            });
+
+            return `
             <div class="table-responsive">
-                <table class="table table-hover align-middle text-center">
+                <table class="table table-hover align-middle text-start mb-0">
                     <thead class="table-light">
                         <tr>
                             <th>Client</th>
                             <th>Séjour</th>
-                            <th>Pers</th>
+                            <th class="text-center">Pers.</th>
                             <th>Prestations</th>
-                            <th>Réduction</th>
-                            <th>Statut</th>
-                            ${showActions ? '<th>Actions</th>' : ''}
+                            <th class="text-center">Réduction</th>
+                            <th class="text-center">Statut</th>
+                            <th class="text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-            `;
-
-            list.forEach(r => {
-
-                html += `
-                <tr>
-                    <td>${r.nom}</td>
-
-                    <td>
-                        <strong>${r['date de debut']}</strong><br>
-                        <small>${r['date de fin']}</small>
-                    </td>
-
-                    <td><span class="badge bg-info">${r.nbr_personne}</span></td>
-
-                    <!-- PRESTATIONS -->
-                    <td>
-                        <select class="form-select form-select-sm add-prestation" data-id="${r.id}">
-                            <option value="">+ Ajouter</option>
-                            ${prestationOptions}
-                        </select>
-
-                        <div class="mt-1 small text-muted prestations-list" id="prest-${r.id}">
-                            ${r.prestations ? r.prestations.join(', ') : ''}
-                        </div>
-                    </td>
-
-                    <!-- REDUCTION -->
-                    <td>
-                        <select class="form-select form-select-sm reduction" data-id="${r.id}">
-                            <option value="0">0%</option>
-                            <option value="10">-10%</option>
-                            <option value="20">-20%</option>
-                            <option value="50">-50%</option>
-                        </select>
-                    </td>
-
-                    <td>${getStatusBadge(r.status)}</td>
-                `;
-
-                if (showActions) {
-                    html += `
-                    <td>
-                        <button class="btn btn-sm btn-outline-success btn-validate" data-id="${r.id}">
-                            ✔
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger btn-reject" data-id="${r.id}">
-                            ✖
-                        </button>
-                    </td>
-                    `;
-                }
-
-                html += `</tr>`;
-            });
-
-            html += `</tbody></table></div>`;
-            return html;
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>`;
         };
 
-        // UI
-        let html = `
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <h4 class="mb-4">Gestion des réservations</h4>
-                <div id="reservationsTable"></div>
-            </div>
-        </div>
-        `;
+        // Tabs de filtrage
+        const tabs = [
+            { key: 'en attente', label: 'En attente',  icon: 'bi-clock-history',  color: 'warning'   },
+            { key: 'confirmée',  label: 'Confirmées',  icon: 'bi-check-circle',   color: 'success'   },
+            { key: 'terminée',   label: 'Terminées',   icon: 'bi-archive',        color: 'secondary' },
+            { key: 'annulée',    label: 'Annulées',    icon: 'bi-x-circle',       color: 'danger'    },
+        ];
 
-        $('#adminContent').html(html);
+        const tabNav = tabs.map(t => {
+            const count = reservations.filter(r => r.status === t.key).length;
+            return `
+            <li class="nav-item">
+                <button class="nav-link filter-tab ${t.key === 'en attente' ? 'active' : ''}"
+                        data-filter="${t.key}" type="button">
+                    <i class="bi ${t.icon} me-1"></i>${t.label}
+                    <span class="badge text-bg-${t.color} ms-1">${count}</span>
+                </button>
+            </li>`;
+        }).join('');
+
+        const ui = `
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="px-4 pt-4 pb-0 border-bottom">
+                    <h5 class="mb-3 fw-semibold">
+                        <i class="bi bi-calendar2-check me-2 text-primary"></i>Gestion des réservations
+                    </h5>
+                    <ul class="nav nav-tabs border-0" id="reservationTabs">${tabNav}</ul>
+                </div>
+                <div class="p-3" id="reservationsTable"></div>
+            </div>
+        </div>`;
+
+        $('#adminContent').html(ui);
         $('#dashboardHome').addClass('d-none');
 
         let currentFilter = 'en attente';
 
         const updateTable = () => {
-            let filtered = reservations.filter(r => r.status === currentFilter);
-            $('#reservationsTable').html(generateTable(filtered, true));
+            const filtered = reservations.filter(r => r.status === currentFilter);
+            $('#reservationsTable').html(generateTable(filtered));
         };
 
         updateTable();
 
-        // ajout de prestation a la demande du client
-       // ajout de prestation à la demande du client
-$(document).on('change', '.add-prestation', function () {
-    let reservationId = $(this).data('id');
-    let prestationId = $(this).val();
+        // Changement d'onglet
+        $(document).on('click', '.filter-tab', function () {
+            $('.filter-tab').removeClass('active');
+            $(this).addClass('active');
+            currentFilter = $(this).data('filter');
+            updateTable();
+        });
 
-    if (!prestationId) return;
+        // Ajout de prestation
+        $(document).on('change', '.add-prestation', function () {
+            const reservationId = $(this).data('id');
+            const prestationId  = $(this).val();
+            if (!prestationId) return;
 
-    $.ajax({
-        url: '../api/addPrestation.php',
-        method: 'POST',
-        data: {
-            reservation_id: reservationId,
-            prestation_id: prestationId
-        },
-        success: function (response) {
-            if (response.success) {
-                // rafraîchir la liste des prestations dans la table
-                $('#linkReservations').click();
-            } else {
-                console.error("Erreur API addPrestation:", response.error);
-                alert("Impossible d'ajouter la prestation : " + response.error);
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error("Erreur lors de l'ajout de la prestation :", error);
-            alert("Impossible d'ajouter la prestation.");
-        }
+            $.ajax({ url: '../api/addPrestation.php', method: 'POST',
+                     data: { reservation_id: reservationId, prestation_id: prestationId } })
+            .done(function (res) {
+                if (res.success) {
+                    $('#linkReservations').trigger('click');
+                } else {
+                    showToast('danger', "Impossible d'ajouter la prestation : " + res.error);
+                }
+            })
+            .fail(function () {
+                showToast('danger', "Erreur réseau lors de l'ajout de la prestation.");
+            });
+        });
+
+        // Mise à jour réduction
+        $(document).on('change', '.reduction', function () {
+            const reservationId = $(this).data('id');
+            const reduction     = $(this).val();
+
+            $.ajax({ url: '../api/updateReduction.php', method: 'POST',
+                     data: { reservation_id: reservationId, reduction: reduction } })
+            .done(function (res) {
+                if (res.success) {
+                    $('#linkReservations').trigger('click');
+                } else {
+                    showToast('danger', "Impossible de mettre à jour la réduction : " + res.error);
+                }
+            })
+            .fail(function () {
+                showToast('danger', "Erreur réseau lors de la mise à jour de la réduction.");
+            });
+        });
+    })
+    .fail(function () {
+        $('#adminContent').html(`
+            <div class="alert alert-danger d-flex align-items-center gap-2 mt-3">
+                <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                Impossible de charger les réservations. Vérifiez votre connexion.
+            </div>`);
     });
 });
 
-// mise à jour de la réduction
-$(document).on('change', '.reduction', function () {
-    let reservationId = $(this).data('id');
-    let reduction = $(this).val();
+// Toast utilitaire (Bootstrap 5)
+function showToast(type, message) {
+    const id = 'toast-' + Date.now();
+    const html = `
+    <div id="${id}" class="toast align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive">
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>`;
 
-    $.ajax({
-        url: '../api/updateReduction.php',
-        method: 'POST',
-        data: {
-            reservation_id: reservationId,
-            reduction: reduction
-        },
-        success: function (response) {
-            if (response.success) {
-                // rafraîchir la table
-                $('#linkReservations').click();
-            } else {
-                console.error("Erreur API updateReduction:", response.error);
-                alert("Impossible de mettre à jour la réduction : " + response.error);
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error("Erreur lors de la mise à jour de la réduction :", error);
-            alert("Impossible de mettre à jour la réduction.");
-        }
-    });
-});
-
-    }, 'json');
-});
+    if (!$('#toastContainer').length) {
+        $('body').append('<div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>');
+    }
+    $('#toastContainer').append(html);
+    const el = document.getElementById(id);
+    new bootstrap.Toast(el, { delay: 4000 }).show();
+    el.addEventListener('hidden.bs.toast', () => el.remove());
+}
     // Clic sur valider réservation
     $(document).on('click', '.btn-validate', function () {
         let reservationId = $(this).data('id');

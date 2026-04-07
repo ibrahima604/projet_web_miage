@@ -8,45 +8,46 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'user') {
     exit;
 }
 
-$file = __DIR__ . '/../data/Reservations.json';
-$file_ch = __DIR__ . '/../data/Chambres.json';
+$file     = __DIR__ . '/../data/Reservations.json';
+$file_ch  = __DIR__ . '/../data/Chambres.json';
+$file_pr  = __DIR__ . '/../data/Prestations.json';
 
-$reservations = file_exists($file) ? json_decode(file_get_contents($file), true) : [];
-$chambres = file_exists($file_ch) ? json_decode(file_get_contents($file_ch), true) : [];
+$reservations = file_exists($file)    ? json_decode(file_get_contents($file),    true) : [];
+$chambresData = file_exists($file_ch) ? json_decode(file_get_contents($file_ch), true) : [];
+$prestations  = file_exists($file_pr) ? json_decode(file_get_contents($file_pr), true) : [];
 
-// Récupérer l'ID de la réservation depuis les paramètres GET
-$id_reservation = (int) ($_GET['id'] ?? 0);
-
+$id_reservation = trim($_GET['id'] ?? '');
 $reservationSelectionnee = null;
 
-foreach ($reservations as $reservation) {
-    if ($reservation['id'] == $id_reservation) {
-        $reservationSelectionnee = $reservation;
+foreach ($reservations as $r) {
+    if ((string)$r['id'] === $id_reservation) {
+        $reservationSelectionnee = $r;
         break;
     }
 }
 
-if ($reservationSelectionnee) {
-
-    // Vérifie structure chambres
-    $listeChambres = isset($chambres['chambres']) ? $chambres['chambres'] : $chambres;
-
-    foreach ($listeChambres as $chambre) {
-        if ($chambre['id'] == $reservationSelectionnee['id_chambre']) {
-            $reservationSelectionnee['chambre'] = $chambre;
-            break;
-        }
-    }
-
-    ini_set('display_errors', 1);
-    error_reporting(E_ALL);
-    echo json_encode([
-        'success' => true,
-        'reservation' => $reservationSelectionnee
-    ]);
-} else {
-    echo json_encode([
-        'success' => false,
-        'error' => 'Réservation non trouvée'
-    ]);
+if (!$reservationSelectionnee) {
+    echo json_encode(['success' => false, 'error' => 'Réservation non trouvée']);
+    exit;
 }
+
+// Chambre
+$listeChambres = $chambresData['chambres'] ?? $chambresData;
+foreach ($listeChambres as $chambre) {
+    if ($chambre['id'] == $reservationSelectionnee['id_chambre']) {
+        $reservationSelectionnee['chambre'] = $chambre;
+        break;
+    }
+}
+
+// Prestations détaillées
+$idsPrestations = $reservationSelectionnee['prestations'] ?? [];
+$detailPrestations = [];
+foreach ($prestations as $p) {
+    if (in_array($p['id'], $idsPrestations)) {
+        $detailPrestations[] = $p;
+    }
+}
+$reservationSelectionnee['prestations_detail'] = $detailPrestations;
+
+echo json_encode(['success' => true, 'reservation' => $reservationSelectionnee]);

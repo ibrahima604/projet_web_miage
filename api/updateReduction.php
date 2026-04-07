@@ -15,7 +15,7 @@ if (file_exists($file)) {
     $reservations = json_decode(file_get_contents($file), true);
 }
 // Récupérer les données de la requête POST
-if(isset($_POST['reservationId']) && isset($_POST['reduction'])) {
+if(isset($_POST['reservation_id']) && isset($_POST['reduction'])) {
     $reservationId = $_POST['reservation_id'];
     $reduction = (int) $_POST['reduction'];
     $updated = false;
