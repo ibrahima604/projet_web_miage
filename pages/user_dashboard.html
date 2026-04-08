@@ -47,7 +47,7 @@
     <!-- TOP BAR -->
     <div class="topbar d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Tableau de bord</h5>
-        <span class="text-muted">Bienvenue 👋</span>
+        <span class="text-muted">Bienvenue </span>
     </div>
 
     <!-- CARDS RAPIDES -->
@@ -86,7 +86,49 @@
         </div>
 
     </div>
+    <div class="modal fade" id="modalActivite" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0">
 
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-semibold">
+          Ajouter activité : <span id="modalActiviteNom"></span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <input type="hidden" id="modalActiviteId">
+
+        <!-- Choix réservation -->
+        <div class="mb-3">
+          <label class="form-label">Choisir une réservation</label>
+          <select id="selectReservation" class="form-select">
+            <option value="">Chargement...</option>
+          </select>
+        </div>
+
+        <!-- Nombre de personnes -->
+        <div class="mb-3">
+          <label class="form-label">Nombre de personnes</label>
+          <input type="number" id="nbPersonnes" class="form-control" min="1">
+        </div>
+
+      </div>
+
+      <div class="modal-footer border-0">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">
+          Annuler
+        </button>
+        <button id="btnAjouterActivite" class="btn btn-primary">
+          Ajouter
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
     <!-- CONTENU DYNAMIQUE -->
     <div id="dashboardContent" class="p-4 bg-white rounded shadow-sm">
         <h4>Bienvenue sur votre espace</h4>

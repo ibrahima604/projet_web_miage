@@ -1,8 +1,6 @@
 <?php
 session_start();
 header('Content-Type: application/json; charset=UTF-8');
-
-// Désactive l'affichage des erreurs pour éviter de polluer le JSON
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
@@ -12,54 +10,46 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'user') {
     exit;
 }
 
-$file = __DIR__ . '/../data/Reservations.json';
-$ch_file = __DIR__ . '/../data/Chambres.json';
+$file_res  = __DIR__ . '/../data/Reservations.json';
+$file_ch   = __DIR__ . '/../data/Chambres.json';
+$file_pr   = __DIR__ . '/../data/Prestations.json';
 
-if (!file_exists($file)) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Reservations.json introuvable']);
-    exit;
-}
-if (!file_exists($ch_file)) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Chambres.json introuvable']);
-    exit;
+foreach (['reservations' => $file_res, 'chambres' => $file_ch, 'prestations' => $file_pr] as $name => $path) {
+    if (!file_exists($path)) {
+        http_response_code(500);
+        echo json_encode(['error' => "$name introuvable"]);
+        exit;
+    }
 }
 
-$reservations = json_decode(file_get_contents($file), true);
-if ($reservations === null) {
+$reservations = json_decode(file_get_contents($file_res), true);
+$chambresData = json_decode(file_get_contents($file_ch),  true);
+$prestations  = json_decode(file_get_contents($file_pr),  true);
+
+if ($reservations === null || $chambresData === null || $prestations === null) {
     http_response_code(500);
-    echo json_encode(['error' => 'Erreur décodage Reservations.json']);
-    exit;
-}
-// Récupérer les chambres
-$chambres = json_decode(file_get_contents($ch_file), true);
-// Vérifier que le décodage a réussi
-if ($chambres === null) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Erreur décodage Chambres.json']);
+    echo json_encode(['error' => 'Erreur de décodage JSON']);
     exit;
 }
 
-// Filtrer les réservations de l'utilisateur
-$userReservations = array_filter($reservations, function($reservation) {
-    return $reservation['email'] === $_SESSION['user']['email'];
-});
+$listeChambres = $chambresData['chambres'] ?? $chambresData;
 
-// Ajouter les informations de la chambre et le prix
-foreach ($userReservations as &$reservation) {
-    if (!empty($reservation['id_chambre'])) {
-        $idChambre = $reservation['id_chambre'];
-        foreach ($chambres["chambres"] as $chambre) {
-            if ($chambre['id'] === $idChambre) {
-                $reservation['chambre'] = $chambre;
-                $reservation['prix'] = $chambre['prix'];
-                break;
-            }
+// Filtrer les réservations de l'utilisateur connecté
+$userReservations = array_filter($reservations, fn($r) => $r['email'] === $_SESSION['user']['email']);
+
+// Enrichir chaque réservation avec les infos chambre
+foreach ($userReservations as &$r) {
+    foreach ($listeChambres as $ch) {
+        if ($ch['id'] == $r['id_chambre']) {
+            $r['chambre'] = $ch;
+            $r['prix']    = $ch['prix'];
+            break;
         }
     }
 }
+
 echo json_encode([
-    'success' => true,
-    'reservations' => array_values($userReservations)  
+    'success'      => true,
+    'reservations' => array_values($userReservations),
+    'prestations'  => $prestations   // liste complète pour le dropdown
 ]);
